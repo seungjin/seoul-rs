@@ -12,6 +12,7 @@ build_search_index = true
 taxonomies = [
   { name = "categories", feed = true },
   { name = "tags", feed = true },
+  { name = "authors", feed = true },
 ]
 
 default_language = "en"
@@ -34,6 +35,7 @@ title = "서울 러스트"
 taxonomies = [
   { name = "categories", feed = true },
   { name = "tags", feed = true },
+  { name = "authors", feed = true },
 ]
 
 
@@ -48,7 +50,7 @@ site = "Site"
 
 
 [markdown]
-
+render_emoji = true
 
 [extra]
 date_format = "%Y-%m-%d"
