@@ -19,12 +19,13 @@
             </i>
           </span>
           <a href="{{ page.permalink }}">{{ page.title }}</a>
+          {% if page.taxonomies.authors %}
           &nbsp;&nbsp;<sub>
-          {% for author_id in page.authors %}
-            {{author_id}}
+          {% for author in page.taxonomies.authors %}
+            {{author}} {% if not loop.last %}, {% endif %}
           {% endfor %}
           </sub>
-
+          {% endif %}
         </li>
         {%- else %}
         <li>{{ trans(key="no_posts", lang=lang) }}</li>

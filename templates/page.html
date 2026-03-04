@@ -14,10 +14,11 @@
           </time>
         </i>
     {%- endif %}
-    {% for author_id in page.authors %}
-       {% set author = config.extra.authors[author_id] %}
-       , <b>{{ author.name }}</b>
+    {% if page.taxonomies.authors %} /
+    {% for author in page.taxonomies.authors %}
+    <b>{{ author }}</b>{% if not loop.last %}, {% endif %}
     {% endfor %}
+    {% endif %}
     </p>
   {%- endif %}
   {%- if config.extra.table_of_contents.show and not page.extra.hide_table_of_contents and page.toc %}
