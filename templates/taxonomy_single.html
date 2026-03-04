@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{%- block main -%}
+  <main>
+    {%- if term %}
+      <h3 class="filter">{{ trans(key="filtering_for", lang=lang) }} "{{ term.name }}"</h3>
+      <small>
+        <a href="{{ get_url(path="@/blog/_index.md", lang=lang) }}">{{ trans(key="remove_filter", lang=lang) }}</a>
+      </small>
+    {%- endif %}
+    <ul class="blog-posts">
+      {%- for page in term.pages %}
+        <li>
+          <span>
+            <i>
+              <time datetime="{{ page.date | date(format='%+') }}" pubdate>
+                {{ page.date | date(format=config.extra.date_format) }}
+              </time>
+            </i>
+          </span>
+          <a href="{{ page.permalink }}">{{ page.title }}</a>
+          {% if page.taxonomies.authors %}
+          &nbsp;&nbsp;<sub>
+          {% for author in page.taxonomies.authors %}
+            {{author}} {% if not loop.last %}, {% endif %}
+          {% endfor %}
+          </sub>
+          {% endif %}
+        </li>
+      {%- else %}
+        <li>
+          {{ trans(key="no_posts", lang=lang) }}
+        </li>
+      {%- endfor %}
+    </ul>
+  </main>
+{%- endblock -%}
