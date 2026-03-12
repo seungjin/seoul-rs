@@ -16,8 +16,10 @@ Seoul Rust users on/off gatherings
 seoul.rs is written with the Zola static site generator and hosted on GitHub Pages.
 Anyone can write and contribute through GitHub pull requests.
 
-Soruce:  
-[https://github.com/seoul-rs/seoul-rs](https://github.com/seoul-rs/seoul-rs)
+Soruce: [https://github.com/seoul-rs/seoul-rs](https://github.com/seoul-rs/seoul-rs)  
+
+* As of March 12, 2026, the CommentBox.io system is integrated into 'News' and 'Blogs.' However, I am looking for a GitHub Discussion-based commenting system that Seoul.rs can host itself. Ultimately, I hope to implement and apply my own commenting system using the GitHub GraphQL API.
+   
 
 ---
 Thanks and Built on top of  

@@ -17,8 +17,9 @@ fn main() {
 seoul.rs는 Zola (Static Site Generator)로 작성되었으며 GitHub Pages에 호스팅되어 있습니다.  
 누구나 GitHub의 Pull Request를 통해 글을 작성하고 기여할 수 있습니다. [seoul.rs에 글써보기](blog/how-to-contribute-here/)
 
-seoul.rs 소스코드
-[https://github.com/seoul-rs/seoul-rs](https://github.com/seoul-rs/seoul-rs)
+seoul.rs 소스코드: [https://github.com/seoul-rs/seoul-rs](https://github.com/seoul-rs/seoul-rs)
+
+* 2026년 3월 12일, 'News'와 'Blogs'에서 CommentBox.io의 댓글 시스템이 적용되었습니다. 하지만 Seoul.rs가 직접 호스팅할 수 있는 GitHub Discussions 기반의 댓글 시스템을 찾고 있습니다. 더 나아가 GitHub의 GraphQL API를 활용한 댓글 시스템을 직접 적용할수있기를 희망합니다.  
 
 ---
 Thanks and Built on top of  
