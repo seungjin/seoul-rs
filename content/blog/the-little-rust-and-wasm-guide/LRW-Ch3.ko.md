@@ -1,5 +1,4 @@
 +++
-draft = true
 title = "[WIP][LRW] 3. 세상속으로 나온 WASM (Feat 웹브라우저)"
 date = "2026-03-18"
 [taxonomies]
@@ -172,7 +171,7 @@ tags = ["wasm", "rust"]
   
   웹브라우저에서http://localhost:9099 를 확인해보자.  
 
-  ![브라우저 결과](/images/ch3-miniserve.png)
+  ![브라우저 결과](/images/blog/the-little-rust-and-wasm-guide/ch3-miniserve.png)
 
   ```text
   miniserve가 모죠?  
@@ -393,7 +392,7 @@ tags = ["wasm", "rust"]
 
 
   **브라우저 결과**  
-  ![브라우저 결과](/images/ch3-weather-result.png)
+  ![브라우저 결과](/images/blog/the-little-rust-and-wasm-guide/ch3-weather-result.png)
   
 
 
