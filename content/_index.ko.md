@@ -14,6 +14,7 @@ fn main() {
 - [러스트 서울 매트릭스 그룹(영어)](https://matrix.to/#/#rust-seoul:matrix.org)
 - [러스트 서울 텔레그램 그룹(영어)](https://t.me/joinchat/CACX3RXCO8J4EGbQD5B-tw)
 - <a rel="me" href="https://fosstodon.org/@rustseoul">러스트 서울 마스토돈 (Mastodon)</a>
+- [러스트 서울 유튜브 (영어)](https://www.youtube.com/@rustseoul)
 ---
 
 seoul.rs는 Zola (Static Site Generator)로 작성되었으며 GitHub Pages에 호스팅되어 있습니다.  

@@ -13,6 +13,7 @@ Seoul Rust users on/off gatherings
 - [Rust Seoul Matrix group (English)](https://matrix.to/#/#rust-seoul:matrix.org)
 - [Rust Seoul Telegram chat room (English)](https://t.me/joinchat/CACX3RXCO8J4EGbQD5B-tw)
 - <a rel="me" href="https://fosstodon.org/@rustseoul">Rust Seoul Mastodon</a>
+- [Rust Seoul YouTube (English)](https://www.youtube.com/@rustseoul)
 ---
 
 seoul.rs is written with the Zola static site generator and hosted on GitHub Pages.
