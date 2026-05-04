@@ -1,6 +1,6 @@
 # The URL the site will be built for
 title = "Seoul Rust"
-base_url = "https://seoul.rs/"
+base_url = "https://seoul.rs"
 #description = "Seoul Rust, seoul.rs"
 
 theme = "zola-bearblog"
@@ -50,9 +50,14 @@ table_of_contents = "목차"
 language = "Language"
 site = "Site"
 
-
 [markdown]
 render_emoji = true
+external_links_target_blank = true
+smart_punctuation = true
+
+[markdown.highlighting]
+error_on_missing_language = true
+theme = "github-light"
 
 [extra]
 date_format = "%Y-%m-%d"
@@ -72,28 +77,15 @@ visible_on_load = false
 
 [[extra.main_menu]]
 name = "Home"
-name_ko = "Home"
+name_ko = "홈"
 url = "@/_index.md"
 
 [[extra.main_menu]]
 name = "News"
-name_ko = "News"
+name_ko = "소식"
 url = "@/news/_index.md"
 
 [[extra.main_menu]]
 name = "Blog"
-name_ko = "Blog"
+name_ko = "블로그"
 url = "@/blog/_index.md"
-
-[[extra.main_menu]]
-name = "About"
-name_ko = "About"
-url = "@/about.md"
-
-
-# About two empty lines are intended
-# 
-[extra.authors.seungjin]
-name = "Seungjin Kim"
-bio = "Rust developer in Seoul"
-github = "seungjin"

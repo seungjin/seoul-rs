@@ -2,14 +2,14 @@
 
 {%- block main -%}
   <main>
-    {%- if taxonomy.term %}
-      <h3 class="filter">{{ trans(key="filtering_for",lang=lang)}} "{{ section.title }}"</h3>
+    {%- if term %}
+      <h3 class="filter">{{ trans(key="filtering_for", lang=lang) }} "{{ term.name }}"</h3>
       <small>
         <a href="{{ get_url(path="@/blog/_index.md", lang=lang) }}">{{ trans(key="remove_filter", lang=lang) }}</a>
       </small>
     {%- endif %}
     <ul class="blog-posts">
-      {%- for page in section.pages %}
+      {%- for page in term.pages %}
         <li>
           <span>
             <i>
@@ -27,16 +27,11 @@
           </sub>
           {% endif %}
         </li>
-        {%- else %}
-        <li>{{ trans(key="no_posts", lang=lang) }}</li>
-      {%- endfor -%}
-    </ul>
-    <div class="tags">
-      {%- set taxonomy_group = section.extra.taxonomy_group | default(value="tags") %}
-      {%- set tags = get_taxonomy(kind=taxonomy_group, lang=lang) %}
-      {%- for post in tags.items %}
-        <a href="{{ post.permalink }}">#{{ post.name }}</a>&nbsp;
+      {%- else %}
+        <li>
+          {{ trans(key="no_posts", lang=lang) }}
+        </li>
       {%- endfor %}
-    </div>
+    </ul>
   </main>
-{% endblock %}
+{%- endblock -%}
