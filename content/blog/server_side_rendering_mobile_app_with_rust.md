@@ -9,42 +9,114 @@ tags = ["rust", "hyperview", "React Native"]
 
 ## Introduction
 
-Hi, I'm Charles, the CTO of [Clear](https://getclearapp.com) and wanted to share my experience using Rust to server side render parts of the mobile app I work on. First I need to explain how I got into to this situation.
+Hi, I'm Charles, the CTO of [Clear](https://getclearapp.com).
+I wanted to share my experience using Rust to server side render parts of the mobile app I work on.
+First I need to explain how I got into to this situation.
 
 ## Motivation
 
-To address the confusion of what Clear is to new users, and to make it easy to discover the features of the app, we needed a proper "Home tab" that provided teasers to the different features of the app. Originally, after new users had finished the signup flow, they were navigated to the "Home tab" which was a list of posts from the community. Given that at most only 5% of users ever engaged with the community features of the app and that Clear was being marketed as skincare tracker first and foremost, showing only the community posts in the Home tab didn't make sense. Our "Tracker tab" consisted of showing the user the list of their routines and progress checkins, which wasn't very engaging so showing that as the first tab wasn't effective.
+To address the confusion of what Clear is to new users,
+and to make it easy to discover the features of the app,
+we needed a proper "Home tab" that provided teasers to the different features of the app.
+Originally,
+after new users had finished the signup flow,
+they were navigated to the "Home tab" which was a list of posts from the community.
+Given that at most only 5% of users ever engaged with the community features of the app,
+and that Clear was being marketed as skincare tracker first and foremost,
+showing only the community posts in the Home tab didn't make sense.
+Our "Tracker tab" consisted of showing the user the list of their routines and progress checkins,
+which wasn't very engaging
+so showing that as the first tab wasn't effective.
+
 | Original Home tab | Original Tracker tab |
 | :---: | :---: |
 |![What the Home tab looked like in 2023](https://uploads.getclearapp.com/website_assets/screenshots/feed.png) | ![What the diary looked like in 2023](https://uploads.getclearapp.com/website_assets/screenshots/diary.png)|
 
-The basic structure for the new Home tab was a heterogenous list of components that adapted to the actions that the user had taken. It was a similar problem to the notification history screen where different types of data are required to render each notification entry. We were returning a paginated list of GraphQL unions that the front end code had to know how to render. When we wanted to add another variant to the GraphQL union type, we realised that older versions of the app would break. Even if the client filtered out the unknown union variants, the GraphQL server would have to know which types the version of the app supported to properly paginate the list otherwise multiple pages may have to be loaded until compatible variants are found. We solved this by letting the client pass a list of supported notification types to the `scalableConnection` field of the `Notifications` object. A similar approach could have worked for the Home tab.
+The basic structure for the new Home tab was a heterogenous list of components that adapted to the actions that the user had taken.
+It was a similar problem to the notification history screen where different types of data are required to render each notification entry.
+We were returning a paginated list of GraphQL unions that the front end code had to know how to render.
+When we wanted to add another variant to the GraphQL union type,
+we realised that older versions of the app would break.
+Even if the client filtered out the unknown union variants,
+the GraphQL server would have to know which types the version of the app supported to properly paginate the list
+otherwise multiple pages may have to be loaded until compatible variants are found.
+We solved this by letting the client pass a list of supported notification types to the `scalableConnection` field of the `Notifications` object.
+A similar approach could have worked for the Home tab.
 
 ## Why not just extend the existing GraphQL API?
 
-Given that our designer was working with us just an hour a week, it would have taken a long time to come up with a complete professional design for a "Home tab". If I tried to extend the GraphQL API too early whilst the design was evolving, a lot of development time could have been wasted on getting the back end ready for functionality that may never ship. It had also become impractical to do full stack development with the GraphQL API due to it taking up to 1 minute to recompile changes to the GraphQL server for a debug build. I had been working on reducing the hot compilation times by breaking up the original binary crate into smaller crates and avoiding the `juniper` macros from directly consuming the database query code within GraphQL field resolvers which was leading to an explosion in type recursion.
+Given that our designer was working with us just an hour a week,
+it would have taken a long time to come up with a complete professional design for a "Home tab".
+If I tried to extend the GraphQL API too early whilst the design was evolving,
+a lot of development time could have been wasted on getting the back end ready for functionality that may never ship.
+It had also become impractical to do full stack development with the GraphQL API due to it taking up to 1 minute to recompile changes to the GraphQL server for a debug build.
+I had been working on reducing the hot compilation times by breaking up the original binary crate into smaller crates
+and avoiding the `juniper` macros from directly consuming the database query code within GraphQL field resolvers
+which was leading to an explosion in type recursion.
 
-Whilst the steps already made had made using rust-analyzer bearable, reducing the compilation times to a practical level for `cargo watch` would have involved refactoring the majority of the back end codebase. We didn't have the capacity to commit to this refactor given that I was the only software engineer. It was time to experiment with an alternative to the current GraphQL server.
+Whilst the steps already made had made using rust-analyzer bearable,
+reducing the compilation times to a practical level for `cargo watch` would have involved refactoring the majority of the back end codebase.
+We didn't have the capacity to commit to this refactor given that I was the only software engineer.
+It was time to experiment with an alternative to the current GraphQL server.
 
-For more details on the type recursion problem, read [this blog post](../when-type-recursion-gets-out-of-control/)
+For more details on the type recursion problem, read [this blog post](../when-type-recursion-gets-out-of-control/).
 
-## Solutions
+## Possile solutions
 
 ### A dedicated GraphQL server for the Home tab
 
-We could have tried to stay on GraphQL and still avoid the compilation time issue by creating a separate GraphQL server which we did for the [admin site](https://getclearapp.com/admin). However, [relay](https://relay.dev/), the GraphQL client we use, assumes a single GraphQL server for each application and that had already caused issues in correctly typechecking the admin site which used a mixture of both the public and admin GraphQL API (you had to make sure to pass each query to the right GraphQL client and to avoid naming collisions).
+We could have tried to stay on GraphQL and still avoid the compilation time issue
+by creating a separate GraphQL server which we did for the [admin site](https://getclearapp.com/admin).
+However, [relay](https://relay.dev/),
+the GraphQL client we use,
+assumes a single GraphQL server for each application
+and that had already caused issues in correctly typechecking the admin site
+which used a mixture of both the public and admin GraphQL API
+(you had to make sure to pass each query to the right GraphQL client and to avoid naming collisions).
 
 ### A federated GraphQL server
 
-We could have run separate binary servers that act as one GraphQL endpoint known as GraphQL federation. The problem is that `juniper` doesn't support federation. We could have migrated to `async-graphql` which supports a lot more GraphQL features, including [federation](https://async-graphql.github.io/async-graphql/en/apollo_federation.html), but that requires updating both the public and admin GraphQL servers (as they both depend on common types deriving `juniper` traits). The level of effort for this would be similar to refactoring away the compilation time issues.
+We could have run separate binary servers
+that act as one GraphQL endpoint
+known as GraphQL federation.
+The problem is that `juniper` doesn't support federation.
+We could have migrated to `async-graphql`
+which supports a lot more GraphQL features,
+including [federation](https://async-graphql.github.io/async-graphql/en/apollo_federation.html),
+but that requires updating both the public and admin GraphQL servers
+(as they both depend on common types deriving `juniper` traits).
+The level of effort for this would be similar to refactoring away the compilation time issues.
 
 ### Hyperview
 
-I had discovered hyperview after reading the hypermedia systems [book](https://hypermedia.systems/hyperview-a-mobile-hypermedia/). It's a React Native client that renders components from a server-generated XML response. The server requirements can easily be achieved in Rust using `axum` or any other HTTP server crate and `askama` to render XML templates. The [styling](https://hyperview.org/docs/reference_styles) and base elements that the hyperview client expects map directly to React Native so there's not a significant learning curve. If you want to reuse existing React components, they can be registered as custom [elements](https://hyperview.org/docs/reference_custom_elements) by the client but this does introduce versioning issues. The client just needs to know the endpoint of the hyperview server to get the initial response which provides `href` s for button presses and [forms](https://hyperview.org/docs/reference_form). Entire mobile apps can be developed this way but for existing apps like Clear where you want to navigate to other screens, the hyperview client can connect to the existing navigator and the `href` s can act as navigation routes. Given that we weren't reusing existing complex components for the Home tab, custom elements weren't necessary which reduces the complexity.
+I had discovered hyperview after reading the hypermedia systems [book](https://hypermedia.systems/hyperview-a-mobile-hypermedia/).
+It's a React Native client that renders components from a server-generated XML response.
+The server requirements can easily be achieved in Rust using `axum`
+or any other HTTP server crate
+and `askama` to render XML templates.
+The [styling](https://hyperview.org/docs/reference_styles) and base elements that the hyperview client expects map directly to React Native
+so there's not a significant learning curve.
+If you want to reuse existing React components,
+they can be registered as custom [elements](https://hyperview.org/docs/reference_custom_elements) by the client
+but this does introduce versioning issues.
+The client just needs to know the endpoint of the hyperview server to get the initial response
+which provides `href` s for button presses and [forms](https://hyperview.org/docs/reference_form).
+Entire mobile apps can be developed this way
+but for existing apps like Clear where you want to navigate to other screens,
+the hyperview client can connect to the existing navigator
+and the `href` s can act as navigation routes.
+Given that we weren't reusing existing complex components for the Home tab,
+custom elements weren't necessary which reduces the complexity.
 
-### A RESTful JSON API with an OpenAPI spec
+### A JSON API with an OpenAPI spec
 
-I already had experience with generating a typescript client from an OpenAPI spec for a React Native mobile app at a previous company but hadn't tried out `dropshot` to automatically generate OpenAPI specs. This could have worked well but we would have lost the advantage of only receiving the data that the client requests which GraphQL affords. Unlike hyperview, fewer aspects on the Home tab are possible to encode naturally through a JSON API such as which components are deferred from the initial page load and how unexpected errors are presented.
+I already had experience with generating a typescript client from an OpenAPI spec for a React Native mobile app at a previous company
+but hadn't tried out [`dropshot`](https://docs.rs/dropshot/latest/dropshot/) to automatically generate OpenAPI specs.
+This could have worked well but we would have lost the advantage of only receiving the data that the client requests which GraphQL affords.
+Unlike hyperview, fewer aspects on the Home tab are possible to encode naturally through a JSON API
+such as which components are deferred from the initial page load
+and how unexpected errors are presented.
+I was particularly influenced by reading about [HATEOAS](https://hypermedia.systems/components-of-a-hypermedia-system/#_hypermedia_as_the_engine_of_application_state_hateoas) in the hypermedia systems book.
 
 ## Implementation
 
