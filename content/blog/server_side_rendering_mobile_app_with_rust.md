@@ -1,7 +1,7 @@
 +++
 draft = false
 title = "Using hyperview to server side render a React Native mobile app with Rust"
-date = "2026-04-18"
+date = "2026-05-11"
 [taxonomies]
 authors = ["Charles Johnson"]
 tags = ["rust", "hyperview", "React Native"]
@@ -30,10 +30,15 @@ so showing that as the first tab wasn't effective.
 
 | Original Home tab | Original Tracker tab |
 | :---: | :---: |
-|![What the Home tab looked like in 2023](https://uploads.getclearapp.com/website_assets/screenshots/feed.png) | ![What the diary looked like in 2023](https://uploads.getclearapp.com/website_assets/screenshots/diary.png)|
+|![What the Home tab looked like in 2023](https://uploads.getclearapp.com/website_assets/screenshots/feed.png){width=50%} | ![What the diary looked like in 2023](https://uploads.getclearapp.com/website_assets/screenshots/diary.png)|
 
 The basic structure for the new Home tab was a heterogenous list of components that adapted to the actions that the user had taken.
 It was a similar problem to the notification history screen where different types of data are required to render each notification entry.
+
+| Initial Design for the new Home tab | Notification History Screen |
+| :---: | :---: |
+| ![Initial Design for the new Home tab](https://uploads.getclearapp.com/blog_assets/Diary.png) | ![Notification History Screen](https://uploads.getclearapp.com/blog_assets/Notification.jpg)|
+
 We were returning a paginated list of GraphQL unions that the front end code had to know how to render.
 When we wanted to add another variant to the GraphQL union type,
 we realised that older versions of the app would break.
@@ -42,6 +47,38 @@ the GraphQL server would have to know which types the version of the app support
 otherwise multiple pages may have to be loaded until compatible variants are found.
 We solved this by letting the client pass a list of supported notification types to the `scalableConnection` field of the `Notifications` object.
 A similar approach could have worked for the Home tab.
+
+### GraphQL query to fetch data for notification history
+```graphql
+query {
+  viewer {
+    userNotifications {
+      scalableConnection(
+        allowedTypes: [
+          FOLLOWEES_POST
+          FOLLOW
+          POST_UPVOTE
+        ]
+      ) {
+        edges {
+          node {
+            typename: __typename
+            ... on FolloweesPost {
+              ...SingleNotificationFolloweesPostFragment
+            }
+            ... on FollowNotification {
+              ...SingleNotificationFollowFragment
+            }
+            ... on PostUpvoteNotification {
+              ...SingleNotificationPostUpvoteFragment
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```
 
 ## Why not just extend the existing GraphQL API?
 
@@ -87,6 +124,11 @@ but that requires updating both the public and admin GraphQL servers
 (as they both depend on common types deriving `juniper` traits).
 The level of effort for this would be similar to refactoring away the compilation time issues.
 
+### Server Side Rendering of React Components
+
+Popular web frameworks like Next.js and Remix exist to server side render React components to HTML using the underlyin `react-dom/server` API.
+There isn't an equivalent framework for React Native because React components map to native UI components that can't be represented as hypermedia like websites can with HTML. 
+
 ### Hyperview
 
 I had discovered hyperview after reading the hypermedia systems [book](https://hypermedia.systems/hyperview-a-mobile-hypermedia/).
@@ -116,7 +158,10 @@ This could have worked well but we would have lost the advantage of only receivi
 Unlike hyperview, fewer aspects on the Home tab are possible to encode naturally through a JSON API
 such as which components are deferred from the initial page load
 and how unexpected errors are presented.
+
 I was particularly influenced by reading about [HATEOAS](https://hypermedia.systems/components-of-a-hypermedia-system/#_hypermedia_as_the_engine_of_application_state_hateoas) in the hypermedia systems book.
+Hypermedia As The Engine Of Application State is an early web concept that hyperview brings new life to for mobile apps as an alternative to the familiar data APIs.
+The case for using XML instead of JSON to represent UI is made in [this blog post](https://hyperview.org/blog/#example-1-list-of-users).
 
 ## Implementation
 
@@ -175,7 +220,8 @@ struct HomeDocTemplate {
 ```
 </details>
 
-The XML responses had to be of [HXML](https://hyperview.org/docs/guide_html) format. It was helpful to add a `refresh` trigger for the main wrapping `view` so that the UI could be iterates on without having to reload the whole app whilst connecting to a local server.
+The XML responses had to be of [HXML](https://hyperview.org/docs/guide_html) format.
+It was helpful to add a `refresh` trigger for the main wrapping `view` so that the UI could be iterated on without having to reload the whole app whilst connecting to a local server.
 
 <details>
 <summary>Minimal HXML</summary>
@@ -237,7 +283,8 @@ function Home() {
 
 ### The need to register custom elements
 
-Even the initial version of the home tab that we shipped used custom elements to render SVG graphics from the HXML as if it was HTML. Only `<svg>` and `<path>` elements are currently supported which was enough for the graphics created in Figma.
+Even the initial version of the home tab that we shipped used custom elements to render SVG graphics from the HXML as if it was HTML.
+Only `<svg>` and `<path>` elements are currently supported which was enough for the graphics created in Figma.
 
 <details>
 <summary>React Native code to register SVG elements.</summary>
@@ -285,9 +332,13 @@ export default class HyperviewSvgPath extends PureComponent<HyperviewProps> {
 `HyperviewSvg` and `HyperviewSvgPath` need to be included in the `components` prop of `Hyperview` elements 
 </details>
 
-We also did eventually start registering custom elements for later versions of the app which we had to avoid including in responses for older versions. This allowed us to reuse existing complex UI components and new UI components that could be built by other team members that only needed to be familiar with React.
+We also did eventually start registering custom elements for later versions of the app which we had to avoid including in responses for older versions.
+This allowed us to reuse existing complex UI components and new UI components that could be built by other team members that only needed to be familiar with React.
 
-We made sure that the app sent a User-Agent HTTP header that includes the version of the app so that the server can check for compatibility. This has resulted in logic spread around the codebase checking for a minimum version for each custom element without any automated validation that we do for changes in the GraphQL API. In practice, this hasn't resulted in production bugs as the current version of app has always been manually tested against hyperview changes in a review environment.
+We made sure that the app sent a User-Agent HTTP header that includes the version of the app so that the server can check for compatibility.
+This has resulted in logic spread around the codebase checking for a minimum version for each custom element
+without any automated validation that we do for changes in the GraphQL API.
+In practice, this hasn't resulted in production bugs as the current version of app has always been manually tested against hyperview changes in a review environment.
 
 <details>
 <summary>Example of version check on the server</summary>
@@ -316,7 +367,8 @@ struct HomeDocTemplate {
 ```
 </details>
 
-In order to render these custom products, the XML templates need to declare a namespace that matches the `namespaceURI` used in the React code.
+In order to render these custom products,
+the XML templates need to declare a namespace that matches the `namespaceURI` used in the React code.
 
 <details>
 <summary>Example of conditionally rendering custom element using namespace prefix</summary>
@@ -361,15 +413,23 @@ In order to render these custom products, the XML templates need to declare a na
 
 * The latest version of the React Native hyperview client at the time was v0.72.3 which was built for an older version of React Native (v0.67) and React (v17) which needed updating in this [commit](https://github.com/Instawork/hyperview/commit/a221a905bddff16f984813747e603e89a80b3f9c).
 
-* The typescript declaration files weren't available for the Clear app to use. This was fixed in this [commit](https://github.com/Instawork/hyperview/commit/db1b999cf38a71e38b04cb6aa53e17951b07a25e).
-* Due to `@react-native-picker/picker` 's lack of support (at the time) for React Native 0.72, the `picker-field` element was removed in this [commit](https://github.com/Instawork/hyperview/commit/ecf77b6196cfb7258e7ce0a953885a3b4d90c4e3) because we didn't need it.
-* The official hyperview client only allowed GET and POST HTTP methods but there wasn't any real reason for this restriction so this [commit](https://github.com/Instawork/hyperview/commit/1cb4c6db49b0e5b0b2f73c0491cf1a9300cee528) allowed PUT, PATCH and DELETE methods as well. We could then serve semantically appropriate HTTP requests.
-* Pull-to-refresh can be implemented with hyperview easily with the `refresh` trigger but it ignored the `shows-scroll-indicator` attribute so this needed to be fixed in this [commit](https://github.com/Instawork/hyperview/commit/f26040c38db84a8f5117f359c98cf605817041c5). This fixed was applied upstream after being reported in this [issue](https://github.com/Instawork/hyperview/issues/816)
-* The `visible` trigger is useful for lazy loading lists however, inconsistent behaviour was observed on Android which was reported in this [issue](https://github.com/Instawork/hyperview/issues/780) and fixed in this [commit](https://github.com/Instawork/hyperview/commit/df60795f570eedfde81d985f389ba85065e1976f)
+* The typescript declaration files weren't available for the Clear app to use.
+This was fixed in this [commit](https://github.com/Instawork/hyperview/commit/db1b999cf38a71e38b04cb6aa53e17951b07a25e).
+* Due to `@react-native-picker/picker` 's lack of support (at the time) for React Native 0.72,
+the `picker-field` element was removed in this [commit](https://github.com/Instawork/hyperview/commit/ecf77b6196cfb7258e7ce0a953885a3b4d90c4e3) because we didn't need it.
+* The official hyperview client only allowed GET and POST HTTP methods but there wasn't any real reason for this restriction so this [commit](https://github.com/Instawork/hyperview/commit/1cb4c6db49b0e5b0b2f73c0491cf1a9300cee528) allowed PUT, PATCH and DELETE methods as well.
+We could then serve semantically appropriate HTTP requests.
+* Pull-to-refresh can be implemented with hyperview easily with the `refresh` trigger but it ignored the `shows-scroll-indicator` attribute so this needed to be fixed in this [commit](https://github.com/Instawork/hyperview/commit/f26040c38db84a8f5117f359c98cf605817041c5).
+This fixed was applied upstream after being reported in this [issue](https://github.com/Instawork/hyperview/issues/816)
+* The `visible` trigger is useful for lazy loading lists,
+however, inconsistent behaviour was observed on Android which was reported in this [issue](https://github.com/Instawork/hyperview/issues/780)
+and fixed in this [commit](https://github.com/Instawork/hyperview/commit/df60795f570eedfde81d985f389ba85065e1976f)
 
 ### Hijacking hyperview's event system
 
-In order to keep the Home tab up to date after user interaction outside of hyperview such as creating a routine or progress check-in, events needed to dispatched via Javascript instead of HXML attributes.
+In order to keep the Home tab up to date after user interaction outside of hyperview,
+such as creating a routine or progress check-in,
+events needed to dispatched via Javascript instead of HXML attributes.
 
 <details>
 <summary>Example of dispatch via Javascript</summary>
@@ -401,11 +461,24 @@ dispatch("routine-update");
 
 ### Connecting to an external navigation took some work
 
-We had to come up with a way to parse the `href` attributes for elements with navigation actions to map to the existing navigation routes. The navigation routes and parameters can be validated by `zod` so that errors can be caught as soon as possible. We do now have to be careful, however, of breaking changes to the navigation system i.e. removing or renaming a navigation route or parameter. This isn't something that has caused errors in production but is something that needs communicating to other team members that work on the front end that may be not be aware of the hyperview system. The hyperview client was forked from v0.72.3 to allow navigating to a screen without specifying any navigation parameters in this [commit](https://github.com/Instawork/hyperview/commit/6ffc8f2cd3d6d0ad7d8413749f2c2d9bca0b6168). After reporting this [issue](https://github.com/Instawork/hyperview/issues/779), the official hyperview project removed support for external navigation as mentioned in this [blog](https://hyperview.org/blog/#:~:text=With%20this%20solid%20foundation%20in%20place%2C%20we,us%20to%20focus%20on%20a%20single%20solution.) in favour of their own internal navigation which is more useful for whole apps that are built on top of hyperview.
+We had to come up with a way to parse the `href` attributes for elements with navigation actions to map to the existing navigation routes.
+The navigation routes and parameters can be validated by `zod` so that errors can be caught as soon as possible.
+We do now have to be careful, however, of breaking changes to the navigation system
+i.e. removing or renaming a navigation route or parameter.
+This isn't something that has caused errors in production
+but is something that needs communicating to other team members that work on the front end
+that may be not be aware of the hyperview system.
+The hyperview client was forked from v0.72.3 to allow navigating to a screen without specifying any navigation parameters in this [commit](https://github.com/Instawork/hyperview/commit/6ffc8f2cd3d6d0ad7d8413749f2c2d9bca0b6168).
+After reporting this [issue](https://github.com/Instawork/hyperview/issues/779),
+the official hyperview project removed support for external navigation as mentioned in this [blog](https://hyperview.org/blog/#:~:text=With%20this%20solid%20foundation%20in%20place%2C%20we,us%20to%20focus%20on%20a%20single%20solution.) in favour of their own internal navigation
+which is more useful for whole apps that are built on top of hyperview.
 
 ### Validation of custom element attributes
 
-We mostly serialised custom element data to a JSON string that is used as the value of a single attribute of a custom element. This attribute is then parsed as a Javascript object and validated by `zod` at runtime. This allows us to catch type errors quickly but we don't have a way of automatically syncing the zod parsers with the Rust types that are serialised into the HXML response.
+We mostly serialised custom element data to a JSON string that is used as the value of a single attribute of a custom element.
+This attribute is then parsed as a Javascript object and validated by `zod` at runtime.
+This allows us to catch type errors quickly
+but we don't have a way of automatically syncing the zod parsers with the Rust types that are serialised into the HXML response.
 
 Typical validation when registering custom elements:
 
@@ -462,4 +535,8 @@ impl Display for Routine {
 
 ### Validating XML against HXML schema
 
-In order to help correctly construct XML that follows the HXML schema, configuring the VSCode XML extension to use .xsd files found [here](https://github.com/Instawork/hyperview/tree/master/schema) was helpful in avoiding typos. However, due to the presence of `askama` template syntax, there were too many false positives to be used as a robust CI job.
+In order to help correctly construct XML that follows the HXML schema,
+configuring the VSCode XML extension to use .xsd files found [here](https://github.com/Instawork/hyperview/tree/master/schema) was helpful in avoiding typos.
+However,
+due to the presence of `askama` template syntax,
+there were too many false positives to be used as a robust CI job.
