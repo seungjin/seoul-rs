@@ -98,7 +98,7 @@ It was time to experiment with an alternative to the current GraphQL server.
 
 For more details on the type recursion problem, read [this blog post](../when-type-recursion-gets-out-of-control/).
 
-## Possile solutions
+## Possible solutions
 
 ### A dedicated GraphQL server for the Home tab
 
