@@ -405,3 +405,7 @@ impl Bar {
 이 기술만으로도 Clear의 공개 GraphQL 서버에서 모바일 앱을 깨뜨리지 않고 임의로 깊은 쿼리가 처리되는 것을 방지할 수 있었습니다. 저희는 순환 타입 참조를 일으키는 모든 GraphQL 필드를 식별하고, 모바일 앱이 수행할 수 있는 쿼리 내에서 해당 필드들이 얼마나 깊게 중첩되는지 분석했습니다. 이 분석을 통해 순환 타입 참조의 일부인 각 GraphQL 객체에 대해 적절한 깊이 제한을 도출할 수 있었습니다. 또한 이 분석을 돕기 위한 [도구](https://gitlab.com/haut-technologies/graphql-analyzer)도 만들었습니다.
 
 또 다른 도구도 개발되었습니다. GraphQL 스키마를 파싱하여 가능한 가장 비싼 쿼리를 자동으로 구성한 다음, 머지 리퀘스트 파이프라인의 일부로 리뷰 환경에서 실행 중인 GraphQL 서버에 부하 테스트를 수행합니다. 이를 통해 DOS 공격을 방지하기 위해 GraphQL 서버에 설정해야 할 요청 속도 제한(rate limit)을 알 수 있을 뿐만 아니라, 데이터 로더 구현과 같은 성능 개선 사항의 영향을 측정할 수 있습니다.
+
+---
+원본: [https://seoul.rs/blog/macro-rules-and-how-they-helped-me-not-get-dos-attacked/](https://seoul.rs/blog/macro-rules-and-how-they-helped-me-not-get-dos-attacked/)
+LLM(Google Gemini)의 도움을 받아 @seungjin의 의해 한글로 번역된 글입니다.  
