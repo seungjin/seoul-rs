@@ -468,3 +468,7 @@ HXML 스키마에 맞는 XML을 올바르게 작성하기 위해, VSCode XML 확
 
 
 
+
+---
+원본: [https://seoul.rs/](https://seoul.rs/blog/server-side-rendering-mobile-app-with-rust/)
+LLM(Google Gemini)의 도움을 받아 @seungjin의 의해 한글로 번역된 글입니다.
