@@ -40,7 +40,11 @@
       {%- endfor %}
     {%- endif %}
   </p>
-  <div class="commentbox"></div>
-  <script src="https://unpkg.com/commentbox.io/dist/commentBox.min.js"></script>
-  <script>commentBox('5681174827499520-proj')</script>
+  <div class="komment"></div>
+  <script type="module">
+    import "https://komment-seoul-rs.s42.workers.dev/komment-embed.js";
+    komment('seoul-rs/seoul-rs', {
+      clientId: 'Iv23liORWvK2DSfDmcSw' 
+    });
+  </script>
 {% endblock %}
